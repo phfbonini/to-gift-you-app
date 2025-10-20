@@ -179,6 +179,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
               primary: colors.primary,
               error: colors.error,
               outline: colors.border,
+              onSurface: colors.text.primary,
+              onSurfaceVariant: colors.text.secondary,
             }
           }}
         />
@@ -204,6 +206,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
               primary: colors.primary,
               error: colors.error,
               outline: colors.border,
+              onSurface: colors.text.primary,
+              onSurfaceVariant: colors.text.secondary,
             }
           }}
         />
@@ -233,6 +237,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
               primary: colors.primary,
               error: colors.error,
               outline: colors.border,
+              onSurface: colors.text.primary,
+              onSurfaceVariant: colors.text.secondary,
             }
           }}
         />
