@@ -13,6 +13,8 @@ type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Home: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { token: string };
 };
 type LoginScreenProps = StackScreenProps<RootStackParamList, 'Login'>;
 
@@ -202,7 +204,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         {/* Links */}
         <Button
           mode="text"
-          onPress={() => {/* TODO: Implementar esqueci senha */}}
+          onPress={() => navigation.navigate('ForgotPassword')}
           disabled={isLoading}
           style={styles.linkButton}
           labelStyle={{ color: colors.primary }}
