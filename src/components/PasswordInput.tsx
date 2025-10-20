@@ -14,6 +14,7 @@ interface PasswordInputProps {
   confirmPassword?: boolean;
   inputRef?: React.RefObject<RNTextInput | null>; 
   disabled?: boolean;
+  showStrengthIndicator?: boolean;
 }
 
 const getStrengthColor = (strength: PasswordStrength): string => {
@@ -35,6 +36,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   confirmPassword = false,
   inputRef,
   disabled = false,
+  showStrengthIndicator = true,
 }) => {
   const theme = useTheme();
   const [visible, setVisible] = useState(false);
@@ -65,12 +67,14 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
             primary: colors.primary,
             error: colors.error,
             outline: colors.border,
+            onSurface: colors.text.primary,
+            onSurfaceVariant: colors.text.secondary,
           }
         }}
       />
       
       {/* Indicador de Força (Apenas para o campo Senha) */}
-      {!confirmPassword && value.length > 0 && (
+      {!confirmPassword && value.length > 0 && showStrengthIndicator && (
         <View style={styles.strengthIndicatorContainer}>
           <Text style={{ color: colors.text.secondary, fontSize: 12 }}>Força:</Text>
           <View style={[styles.strengthBar, { width: `${value.length * 5}%`, backgroundColor: strengthColor }]} />
