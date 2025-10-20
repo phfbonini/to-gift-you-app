@@ -4,42 +4,44 @@ import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RegisterScreen } from './src/screens/RegisterScreen';
+import { LoginScreen } from './src/screens/LoginScreen';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { colors } from './src/theme/colors';
 
-// 1. Importar as Telas
-// Assumindo que você criou a LoginScreen e a RegisterScreen 
-// import { LoginScreen } from './screens/LoginScreen'; 
-
-// 2. Configuração do Stack Navigator
+// Configuração do Stack Navigator
 type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  Home: undefined;
 };
 const Stack = createStackNavigator<RootStackParamList>();
 
-// 3. Tema Customizado do React Native Paper (Opcional, mas recomendado)
+// Tema Customizado do React Native Paper
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#3498db', // Seu azul primário
-    accent: '#f1c40f',  // Amarelo para destaque/alerta
-    error: '#e74c3c',   // Vermelho para erros
-    background: '#f7f7f7', // Fundo mais suave
+    primary: colors.primary,
+    accent: colors.secondary,
+    error: colors.error,
+    background: colors.background,
+    surface: colors.surface,
+    onPrimary: colors.onPrimary,
+    onSecondary: colors.onSecondary,
+    onBackground: colors.onBackground,
+    onSurface: colors.onSurface,
   },
 };
 
-// 4. Componente Principal
+// Componente Principal
 export default function App() {
   return (
-    // PaperProvider envolve toda a aplicação para fornecer o tema
     <PaperProvider theme={theme}>
-      {/* NavigationContainer gerencia o estado de navegação */}
       <NavigationContainer>
-        {/* Stack.Navigator define a estrutura de navegação */}
-        <Stack.Navigator initialRouteName="Register" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
-          {/* Você precisará criar a LoginScreen */}
-          {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
+          <Stack.Screen name="Home" component={HomeScreen} />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
