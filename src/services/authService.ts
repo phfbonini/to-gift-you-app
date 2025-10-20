@@ -164,6 +164,34 @@ export interface RegisterResponse {
   mensagem: string;
 }
 
+export interface ForgotPasswordData {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ResetPasswordData {
+  token: string;
+  senha: string;
+  confirmacaoSenha: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
+export interface ValidateCodeData {
+  code: string;
+}
+
+export interface ValidateCodeResponse {
+  message: string;
+  token: string | null;
+  valid: boolean;
+}
+
 export interface ApiError {
   timestamp: string;
   status: number;
@@ -271,4 +299,77 @@ export const getTokens = async (): Promise<{ accessToken: string | null; refresh
   } catch (error) {
     return { accessToken: null, refreshToken: null };
   }
+};
+
+// Funções de reset de senha
+export const forgotPassword = async (data: ForgotPasswordData): Promise<ForgotPasswordResponse> => {
+  try {
+    const response = await api.post<ForgotPasswordResponse>('/api/auth/forgot-password', {
+      email: data.email,
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiError>;
+      const apiError = axiosError.response?.data;
+      
+      if (apiError) {
+        throw new Error(apiError.message || 'Erro no servidor');
+      }
+    }
+    throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
+  }
+};
+
+export const resetPassword = async (token: string, senha: string, confirmacaoSenha: string): Promise<ResetPasswordResponse> => {
+  try {
+    const response = await api.post<ResetPasswordResponse>('/api/auth/reset-password', {
+      token: token,
+      senha: senha,
+      confirmacaoSenha: confirmacaoSenha,
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiError>;
+      const apiError = axiosError.response?.data;
+      
+      if (apiError) {
+        throw new Error(apiError.message || 'Erro no servidor');
+      }
+    }
+    throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
+  }
+};
+
+export const validateCode = async (code: string): Promise<ValidateCodeResponse> => {
+  try {
+    const response = await api.post<ValidateCodeResponse>('/api/auth/validate-code', {
+      code: code,
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiError>;
+      const apiError = axiosError.response?.data;
+      
+      if (apiError) {
+        throw new Error(apiError.message || 'Erro no servidor');
+      }
+    }
+    throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
+  }
+};
+
+// Objeto authService para facilitar o uso
+export const authService = {
+  login,
+  refreshToken,
+  logout,
+  register,
+  forgotPassword,
+  resetPassword,
+  validateCode,
+  isAuthenticated,
+  getTokens,
 };
