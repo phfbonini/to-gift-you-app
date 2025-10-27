@@ -55,7 +55,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
       case 'email':
         return !validateEmail(value) ? 'Insira um formato de e-mail válido.' : '';
       case 'senha':
-        return value.length < 8 ? 'A senha deve ter no mínimo 8 caracteres.' : '';
+        if (value.length < 8) return 'A senha deve ter no mínimo 8 caracteres.';
+        if (!/[A-Z]/.test(value)) return 'Adicione pelo menos 1 letra maiúscula (A-Z).';
+        if (!/[a-z]/.test(value)) return 'Adicione pelo menos 1 letra minúscula (a-z).';
+        if (!/[0-9]/.test(value)) return 'Adicione pelo menos 1 número (0-9).';
+        if (!/[@$!%*?&#^()\-_+=<>.,;:]/.test(value)) return 'Adicione pelo menos 1 símbolo (@$!%*?&#^-_+=<>,.;:).';
+        return '';
       case 'confirmarSenha':
         return value !== senha ? 'As senhas não coincidem.' : '';
       default:
@@ -69,14 +74,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     setErrors(e => ({ ...e, [field]: errorMsg }));
   }, [validateField]);
 
-  // Validação em Tempo Real: Senha
+  // Validação em Tempo Real: Senha com feedback detalhado
   const handlePasswordChange = (text: string) => {
     setSenha(text);
     // Remove erro de confirmação se o campo de senha for modificado
     if (errors.confirmarSenha && confirmarSenha.length > 0) {
       handleBlur('confirmarSenha', confirmarSenha);
     }
-    const errorMsg = text.length < 8 ? 'A senha deve ter no mínimo 8 caracteres.' : '';
+    // Validação em tempo real com mensagens específicas
+    const errorMsg = validateField('senha', text);
     setErrors(e => ({ ...e, senha: errorMsg }));
   };
 

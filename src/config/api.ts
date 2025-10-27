@@ -19,11 +19,15 @@ export const API_CONFIG = {
 export const getBaseURL = (): string => {
   if (__DEV__) {
     if (Platform.OS === 'android') {
-      // Se estiver usando dispositivo físico, descomente a linha abaixo
-      const url = API_CONFIG.DEVELOPMENT.PHYSICAL_DEVICE;
-      console.log('🔗 Usando URL para Android (dispositivo físico):', url);
+      // Para emulador Android, use o IP especial 10.0.2.2
+      const url = API_CONFIG.DEVELOPMENT.ANDROID_EMULATOR;
+      console.log('🔗 Usando URL para Android (emulador):', url);
       return url;
-      // return API_CONFIG.DEVELOPMENT.ANDROID_EMULATOR;
+      
+      // Se estiver usando dispositivo físico Android, descomente a linha abaixo e configure o IP correto:
+      // const url = API_CONFIG.DEVELOPMENT.PHYSICAL_DEVICE;
+      // console.log('🔗 Usando URL para Android (dispositivo físico):', url);
+      // return url;
     }
     const url = API_CONFIG.DEVELOPMENT.IOS_SIMULATOR;
     console.log('🔗 Usando URL para iOS:', url);

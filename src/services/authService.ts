@@ -273,6 +273,11 @@ export const register = async (data: RegisterData): Promise<RegisterResponse> =>
       const apiError = axiosError.response?.data;
       
       if (apiError) {
+        // Se houver erros de validação específicos, retornar mensagem mais detalhada
+        if (apiError.validationErrors && Object.keys(apiError.validationErrors).length > 0) {
+          const firstError = Object.values(apiError.validationErrors)[0];
+          throw new Error(firstError as string);
+        }
         throw new Error(apiError.message || 'Erro no servidor');
       }
     }
