@@ -99,6 +99,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }
   };
 
+  const handleEditProfile = () => {
+    if (userProfile) {
+      (navigation as any).navigate('EditProfile', { profile: userProfile });
+    }
+  };
+
   const handleEmergencyLogout = async () => {
     try {
       console.log('🚨 Logout de emergência - limpando todos os tokens...');
@@ -158,6 +164,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           icon="account"
         >
           Ver Meu Perfil
+        </Button>
+        
+        <Button
+          mode="contained"
+          onPress={handleEditProfile}
+          style={[styles.editButton, { backgroundColor: colors.secondary }]}
+          contentStyle={styles.buttonContent}
+          labelStyle={[styles.buttonLabel, { color: colors.onPrimary }]}
+          icon="pencil"
+        >
+          Editar Perfil
         </Button>
         
         <Button
@@ -234,6 +251,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   profileButton: {
+    borderRadius: 12,
+    elevation: 2,
+  },
+  editButton: {
     borderRadius: 12,
     elevation: 2,
   },
