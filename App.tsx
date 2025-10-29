@@ -9,6 +9,7 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
 import { ValidateCodeScreen } from './src/screens/ValidateCodeScreen';
 import { ResetPasswordScreen } from './src/screens/ResetPasswordScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
 import { colors } from './src/theme/colors';
 
 // Configuração do Stack Navigator
@@ -19,6 +20,7 @@ type RootStackParamList = {
   ForgotPassword: undefined;
   ValidateCode: { email: string };
   ResetPassword: { token: string };
+  Profile: { userId: number };
 };
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -51,6 +53,7 @@ export default function App() {
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="ValidateCode" component={ValidateCodeScreen} />
           <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
