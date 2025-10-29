@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, Card } from 'react-native-paper';
 import { UserStats } from '../services/profileService';
+import { colors } from '../theme/colors';
 
 interface ProfileStatsProps {
   stats: UserStats;
@@ -29,61 +31,67 @@ export const ProfileStats: React.FC<ProfileStatsProps> = ({
       style={styles.statItem}
       onPress={() => onStatPress?.(statType)}
       disabled={!onStatPress}
+      activeOpacity={onStatPress ? 0.7 : 1}
     >
-      <Text style={styles.statValue}>{formatNumber(value)}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text variant="headlineSmall" style={[styles.statValue, { color: colors.text.primary }]}>
+        {formatNumber(value)}
+      </Text>
+      <Text variant="bodyMedium" style={[styles.statLabel, { color: colors.text.secondary }]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <StatItem 
-        value={stats.postsCount} 
-        label="Posts" 
-        statType="posts" 
-      />
-      <StatItem 
-        value={stats.followersCount} 
-        label="Seguidores" 
-        statType="followers" 
-      />
-      <StatItem 
-        value={stats.followingCount} 
-        label="Seguindo" 
-        statType="following" 
-      />
-      <StatItem 
-        value={stats.likesReceived} 
-        label="Curtidas" 
-        statType="likes" 
-      />
-    </View>
+    <Card style={[styles.card, { backgroundColor: colors.background }]}>
+      <Card.Content style={styles.container}>
+        <StatItem 
+          value={stats.postsCount} 
+          label="Posts" 
+          statType="posts" 
+        />
+        <StatItem 
+          value={stats.followersCount} 
+          label="Seguidores" 
+          statType="followers" 
+        />
+        <StatItem 
+          value={stats.followingCount} 
+          label="Seguindo" 
+          statType="following" 
+        />
+        <StatItem 
+          value={stats.likesReceived} 
+          label="Curtidas" 
+          statType="likes" 
+        />
+      </Card.Content>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
+  card: {
+    margin: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    elevation: 2,
+  },
   container: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
+    paddingVertical: 12,
   },
   statItem: {
     alignItems: 'center',
     minWidth: 60,
+    flex: 1,
   },
   statValue: {
-    fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
   },
 });
