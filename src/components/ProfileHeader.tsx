@@ -1,13 +1,13 @@
 import React from 'react';
 import { 
   View, 
-  Text, 
   StyleSheet, 
   TouchableOpacity, 
   Image,
-  Alert 
 } from 'react-native';
+import { Text, Button, Card } from 'react-native-paper';
 import { UserProfile } from '../services/profileService';
+import { colors } from '../theme/colors';
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -48,16 +48,31 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
   const renderAvatar = () => {
     if (profile.fotoPerfil) {
+      // Converter URL de localhost para o IP correto se necessário
+      let imageUrl = profile.fotoPerfil;
+      if (imageUrl.includes('localhost')) {
+        const { getBaseURL } = require('../config/api');
+        const baseURL = getBaseURL();
+        imageUrl = imageUrl.replace(/https?:\/\/localhost:\d+/, baseURL);
+      }
+      
+      console.log('🖼️ Renderizando avatar com URL:', imageUrl);
+      
       return (
         <Image
-          source={{ uri: profile.fotoPerfil }}
+          source={{ uri: imageUrl }}
           style={styles.avatar}
           resizeMode="cover"
+          onError={(error) => {
+            console.error('❌ Erro ao carregar imagem:', error.nativeEvent.error);
+          }}
+          onLoad={() => {
+            console.log('✅ Imagem carregada com sucesso');
+          }}
         />
       );
     }
     
-    // Avatar padrão com iniciais
     const initials = profile.nome
       .split(' ')
       .map(name => name.charAt(0))
@@ -73,86 +88,116 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   };
 
   const renderActionButton = () => {
+    // Verificar se é o próprio perfil
     if (profile.isMine) {
       return (
-        <TouchableOpacity
-          style={styles.editButton}
+        <Button
+          mode="contained"
           onPress={onEditPress}
           disabled={isLoading}
+          style={[styles.actionButton, styles.fullWidthButton, { backgroundColor: colors.primary }]}
+          contentStyle={styles.buttonContent}
+          labelStyle={[styles.buttonLabel, { color: colors.onPrimary }]}
+          icon="pencil"
         >
-          <Text style={styles.editButtonText}>Editar Perfil</Text>
-        </TouchableOpacity>
+          Editar Perfil
+        </Button>
       );
     }
 
+    // Não é o próprio perfil - mostrar botões de seguir/mensagem
     return (
       <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[
-            styles.followButton,
-            profile.isFollowing && styles.followingButton
-          ]}
+        <Button
+          mode={profile.isFollowing ? "outlined" : "contained"}
           onPress={onFollowPress}
           disabled={isLoading}
+          style={[
+            styles.actionButton,
+            profile.isFollowing 
+              ? { borderColor: colors.primary }
+              : { backgroundColor: colors.primary }
+          ]}
+          contentStyle={styles.buttonContent}
+          labelStyle={[
+            styles.buttonLabel,
+            profile.isFollowing 
+              ? { color: colors.primary }
+              : { color: colors.onPrimary }
+          ]}
+          icon={profile.isFollowing ? "check" : "account-plus"}
         >
-          <Text style={[
-            styles.followButtonText,
-            profile.isFollowing && styles.followingButtonText
-          ]}>
-            {profile.isFollowing ? 'Seguindo' : 'Seguir'}
-          </Text>
-        </TouchableOpacity>
+          {profile.isFollowing ? 'Seguindo' : 'Seguir'}
+        </Button>
         
-        <TouchableOpacity
-          style={styles.messageButton}
+        <Button
+          mode="outlined"
           onPress={onMessagePress}
           disabled={isLoading}
+          style={[styles.actionButton, { borderColor: colors.border }]}
+          contentStyle={styles.buttonContent}
+          labelStyle={[styles.buttonLabel, { color: colors.text.primary }]}
+          icon="message-text"
         >
-          <Text style={styles.messageButtonText}>Mensagem</Text>
-        </TouchableOpacity>
+          Mensagem
+        </Button>
       </View>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        {renderAvatar()}
-        
-        <View style={styles.info}>
-          <Text style={styles.name}>{profile.nome}</Text>
-          <Text style={styles.username}>@{profile.username}</Text>
+    <Card style={[styles.card, { backgroundColor: colors.background }]}>
+      <Card.Content style={styles.content}>
+        <View style={styles.header}>
+          {renderAvatar()}
           
-          {profile.bio && (
-            <Text style={styles.bio}>{profile.bio}</Text>
-          )}
-          
-          <Text style={styles.joinedAt}>
-            Membro desde {formatDate(profile.joinedAt)}
-          </Text>
-          
-          {profile.topTags && profile.topTags.length > 0 && (
-            <View style={styles.tagsContainer}>
-              {profile.topTags.slice(0, 3).map((tag, index) => (
-                <View key={index} style={styles.tag}>
-                  <Text style={styles.tagText}>#{tag}</Text>
-                </View>
-              ))}
-            </View>
-          )}
+          <View style={styles.info}>
+            <Text variant="headlineSmall" style={[styles.name, { color: colors.text.primary }]}>
+              {profile.nome}
+            </Text>
+            <Text variant="bodyMedium" style={[styles.username, { color: colors.text.secondary }]}>
+              @{profile.username}
+            </Text>
+            
+            {profile.bio && (
+              <Text variant="bodyMedium" style={[styles.bio, { color: colors.text.primary }]}>
+                {profile.bio}
+              </Text>
+            )}
+            
+            <Text variant="bodySmall" style={[styles.joinedAt, { color: colors.text.secondary }]}>
+              Membro desde {formatDate(profile.joinedAt)}
+            </Text>
+            
+            {profile.topTags && profile.topTags.length > 0 && (
+              <View style={styles.tagsContainer}>
+                {profile.topTags.slice(0, 3).map((tag, index) => (
+                  <View key={index} style={[styles.tag, { backgroundColor: colors.border + '40' }]}>
+                    <Text variant="bodySmall" style={[styles.tagText, { color: colors.text.secondary }]}>
+                      #{tag}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.actions}>
-        {renderActionButton()}
-      </View>
-    </View>
+        
+        <View style={styles.actions}>
+          {renderActionButton()}
+        </View>
+      </Card.Content>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#ffffff',
+  card: {
+    margin: 16,
+    marginBottom: 8,
+    elevation: 2,
+  },
+  content: {
     padding: 20,
   },
   header: {
@@ -160,19 +205,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     marginBottom: 16,
   },
   defaultAvatar: {
-    backgroundColor: '#6366f1',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#ffffff',
-    fontSize: 32,
+    color: colors.onPrimary,
+    fontSize: 40,
     fontWeight: 'bold',
   },
   info: {
@@ -180,27 +225,19 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   name: {
-    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 4,
     textAlign: 'center',
   },
   username: {
-    fontSize: 16,
-    color: '#6b7280',
     marginBottom: 12,
   },
   bio: {
-    fontSize: 16,
-    color: '#374151',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 12,
   },
   joinedAt: {
-    fontSize: 14,
-    color: '#9ca3af',
     marginBottom: 12,
   },
   tagsContainer: {
@@ -208,71 +245,39 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     marginTop: 8,
+    gap: 8,
   },
   tag: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginHorizontal: 2,
-    marginVertical: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   tagText: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontWeight: '500',
   },
   actions: {
     alignItems: 'center',
-  },
-  editButton: {
-    backgroundColor: '#6366f1',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  editButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    marginTop: 8,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: 12,
+    width: '100%',
+    justifyContent: 'center',
   },
-  followButton: {
-    backgroundColor: '#6366f1',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 100,
-    alignItems: 'center',
+  actionButton: {
+    flex: 1,
+    borderRadius: 12,
+    elevation: 2,
   },
-  followingButton: {
-    backgroundColor: '#e5e7eb',
+  fullWidthButton: {
+    width: '100%',
   },
-  followButtonText: {
-    color: '#ffffff',
+  buttonContent: {
+    height: 48,
+  },
+  buttonLabel: {
     fontSize: 16,
-    fontWeight: '600',
-  },
-  followingButtonText: {
-    color: '#374151',
-  },
-  messageButton: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  messageButtonText: {
-    color: '#374151',
-    fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
 });
