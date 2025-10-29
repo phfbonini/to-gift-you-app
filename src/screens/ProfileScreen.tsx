@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
   RefreshControl,
   Alert,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+import { Text, Button, Card, useTheme, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { ProfileStats } from '../components/ProfileStats';
 import { ProfileHeaderSkeleton, ProfileStatsSkeleton } from '../components/ProfileSkeleton';
 import { profileService, UserProfile } from '../services/profileService';
+import { colors } from '../theme/colors';
 
 interface ProfileScreenProps {
   navigation: any;
@@ -28,6 +28,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   navigation, 
   route 
 }) => {
+  const theme = useTheme();
   const { userId } = route.params;
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -45,7 +46,39 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       }
       setError(null);
 
+      // Obter o perfil atual para comparar IDs e determinar se é o próprio perfil
+      let currentUserProfile: UserProfile | null = null;
+      try {
+        currentUserProfile = await profileService.getCurrentUserProfile();
+      } catch (e) {
+        // Se não conseguir obter o perfil atual, continuar normalmente
+        console.warn('Não foi possível obter perfil atual:', e);
+      }
+
       const profileData = await profileService.getUserProfile(userId);
+      
+      // Garantir que isMine está correto
+      if (currentUserProfile && currentUserProfile.id === userId) {
+        profileData.isMine = true;
+      } else if (currentUserProfile && currentUserProfile.id !== userId) {
+        profileData.isMine = false;
+      }
+      // Se não conseguiu obter currentUserProfile, confiar no backend
+      
+      // Converter URL de localhost para o IP correto se necessário
+      if (profileData.fotoPerfil && profileData.fotoPerfil.includes('localhost')) {
+        const { getBaseURL } = require('../config/api');
+        const baseURL = getBaseURL();
+        profileData.fotoPerfil = profileData.fotoPerfil.replace(/https?:\/\/localhost:\d+/, baseURL);
+        console.log('🔄 URL convertida:', profileData.fotoPerfil);
+      }
+      
+      console.log('📋 Perfil carregado:', { 
+        id: profileData.id, 
+        fotoPerfil: profileData.fotoPerfil,
+        isMine: profileData.isMine 
+      });
+      
       setProfile(profileData);
     } catch (err: any) {
       console.error('Erro ao carregar perfil:', err);
@@ -60,12 +93,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     loadProfile();
   }, [userId]);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadProfile();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const handleRefresh = () => {
     loadProfile(true);
   };
 
   const handleFollowPress = async () => {
-    if (!profile) return;
+    if (!profile || profile.isMine) return; // Não permitir seguir o próprio perfil
 
     setActionLoading(true);
     try {
@@ -73,7 +113,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         ? await profileService.unfollowUser(userId)
         : await profileService.followUser(userId);
 
-      // Atualizar estado otimisticamente
       setProfile(prev => prev ? {
         ...prev,
         isFollowing: response.isFollowing,
@@ -84,7 +123,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         }
       } : null);
 
-      // Mostrar feedback
       Alert.alert(
         'Sucesso',
         response.message,
@@ -103,16 +141,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   const handleEditPress = () => {
-    // TODO: Implementar navegação para tela de edição
-    Alert.alert(
-      'Em breve',
-      'A funcionalidade de edição de perfil será implementada em breve.',
-      [{ text: 'OK' }]
-    );
+    if (profile) {
+      navigation.navigate('EditProfile', { profile });
+    }
   };
 
   const handleMessagePress = () => {
-    // TODO: Implementar navegação para mensagens
     Alert.alert(
       'Em breve',
       'A funcionalidade de mensagens será implementada em breve.',
@@ -121,7 +155,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   const handleStatPress = (statType: 'posts' | 'followers' | 'following' | 'likes') => {
-    // TODO: Implementar navegação para listas específicas
     Alert.alert(
       'Em breve',
       `A funcionalidade de visualizar ${statType} será implementada em breve.`,
@@ -141,34 +174,42 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
     if (error) {
       return (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>😔</Text>
-          <Text style={styles.errorTitle}>Ops! Algo deu errado</Text>
-          <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
+        <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
+          <Text variant="displaySmall" style={styles.errorIcon}>😔</Text>
+          <Text variant="headlineSmall" style={[styles.errorTitle, { color: colors.text.primary }]}>
+            Ops! Algo deu errado
+          </Text>
+          <Text variant="bodyMedium" style={[styles.errorMessage, { color: colors.text.secondary }]}>
+            {error}
+          </Text>
+          <Button
+            mode="contained"
             onPress={() => loadProfile()}
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
           >
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+            Tentar novamente
+          </Button>
         </View>
       );
     }
 
     if (!profile) {
       return (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>👤</Text>
-          <Text style={styles.errorTitle}>Usuário não encontrado</Text>
-          <Text style={styles.errorMessage}>
+        <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
+          <Text variant="displaySmall" style={styles.errorIcon}>👤</Text>
+          <Text variant="headlineSmall" style={[styles.errorTitle, { color: colors.text.primary }]}>
+            Usuário não encontrado
+          </Text>
+          <Text variant="bodyMedium" style={[styles.errorMessage, { color: colors.text.secondary }]}>
             O perfil que você está procurando não existe ou foi removido.
           </Text>
-          <TouchableOpacity
-            style={styles.backButton}
+          <Button
+            mode="outlined"
             onPress={() => navigation.goBack()}
+            style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
+            Voltar
+          </Button>
         </View>
       );
     }
@@ -187,109 +228,98 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           onStatPress={handleStatPress}
         />
         
-        {/* Seção de posts - placeholder */}
-        <View style={styles.postsSection}>
-          <Text style={styles.sectionTitle}>Posts</Text>
-          <View style={styles.emptyPosts}>
-            <Text style={styles.emptyPostsIcon}>📝</Text>
-            <Text style={styles.emptyPostsText}>
-              {profile.isMine 
-                ? 'Você ainda não fez nenhum post'
-                : `${profile.nome} ainda não fez nenhum post`
-              }
+        <Card style={[styles.postsSection, { backgroundColor: colors.background, marginHorizontal: 16, marginTop: 8 }]}>
+          <Card.Content style={{ padding: 20 }}>
+            <Text variant="titleLarge" style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Posts
             </Text>
-          </View>
-        </View>
+            <View style={styles.emptyPosts}>
+              <Text variant="displaySmall" style={styles.emptyPostsIcon}>📝</Text>
+              <Text variant="bodyLarge" style={[styles.emptyPostsText, { color: colors.text.secondary }]}>
+                {profile.isMine 
+                  ? 'Você ainda não fez nenhum post'
+                  : `${profile.nome} ainda não fez nenhum post`
+                }
+              </Text>
+            </View>
+          </Card.Content>
+        </Card>
       </>
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={['#6366f1']}
-            tintColor="#6366f1"
-          />
-        }
-      >
-        {renderContent()}
-      </ScrollView>
-    </SafeAreaView>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+        >
+          {renderContent()}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 20,
+  },
   skeletonContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-    backgroundColor: '#ffffff',
+    minHeight: 400,
   },
   errorIcon: {
-    fontSize: 64,
     marginBottom: 20,
   },
   errorTitle: {
-    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 12,
     textAlign: 'center',
   },
   errorMessage: {
-    fontSize: 16,
-    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 30,
   },
   retryButton: {
-    backgroundColor: '#6366f1',
+    borderRadius: 12,
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   backButton: {
-    backgroundColor: '#e5e7eb',
+    borderRadius: 12,
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: '#374151',
-    fontSize: 16,
-    fontWeight: '600',
   },
   postsSection: {
-    backgroundColor: '#ffffff',
-    marginTop: 8,
-    padding: 20,
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 20,
   },
   emptyPosts: {
@@ -297,12 +327,9 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyPostsIcon: {
-    fontSize: 48,
     marginBottom: 16,
   },
   emptyPostsText: {
-    fontSize: 16,
-    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
   },
