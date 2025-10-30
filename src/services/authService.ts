@@ -216,6 +216,7 @@ export const login = async (data: LoginData): Promise<LoginResponse> => {
       const apiError = axiosError.response?.data;
       
       if (apiError) {
+        // Usar a mensagem específica do backend
         throw new Error(apiError.message || 'Erro no servidor');
       }
     }

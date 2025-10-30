@@ -48,10 +48,12 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
+    const strongRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#^()\-_+=<>.,;:])[A-Za-z\d@$!%*?&#^()\-_+=<>.,;:]{8,}$/;
+
     if (!senha.trim()) {
       newErrors.senha = 'Senha é obrigatória';
-    } else if (senha.length < 8) {
-      newErrors.senha = 'Senha deve ter pelo menos 8 caracteres';
+    } else if (!strongRegex.test(senha)) {
+      newErrors.senha = 'Senha fraca. Use 8+ caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 símbolo.';
     }
 
     if (!confirmacaoSenha.trim()) {
@@ -205,6 +207,10 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             <View style={styles.passwordRequirements}>
               <Text style={styles.requirementsTitle}>Requisitos da senha:</Text>
               <Text style={styles.requirementText}>• Mínimo de 8 caracteres</Text>
+              <Text style={styles.requirementText}>• Pelo menos 1 letra maiúscula e 1 minúscula</Text>
+              <Text style={styles.requirementText}>• Pelo menos 1 número</Text>
+              <Text style={styles.requirementText}>• Pelo menos 1 símbolo (@$!%*?&#^()-_+=&lt;&gt;.,;:)</Text>
+
               <Text style={styles.requirementText}>• As senhas devem coincidir</Text>
             </View>
 
