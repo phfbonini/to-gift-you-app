@@ -14,6 +14,7 @@ import { ProfileStats } from '../components/ProfileStats';
 import { ProfileHeaderSkeleton, ProfileStatsSkeleton } from '../components/ProfileSkeleton';
 import { profileService, UserProfile } from '../services/profileService';
 import { colors } from '../theme/colors';
+import { ProfilePostsGrid } from '../components/ProfilePostsGrid';
 
 interface ProfileScreenProps {
   navigation: any;
@@ -162,6 +163,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     );
   };
 
+  const handleSeeAllPosts = () => {
+    Alert.alert(
+      'Em breve',
+      'A listagem completa de posts será implementada em breve.',
+      [{ text: 'OK' }]
+    );
+  };
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -231,17 +240,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <Card style={[styles.postsSection, { backgroundColor: colors.background, marginHorizontal: 16, marginTop: 8 }]}>
           <Card.Content style={{ padding: 20 }}>
             <Text variant="titleLarge" style={[styles.sectionTitle, { color: colors.text.primary }]}>
-              Posts
+              Posts recentes
             </Text>
-            <View style={styles.emptyPosts}>
-              <Text variant="displaySmall" style={styles.emptyPostsIcon}>📝</Text>
-              <Text variant="bodyLarge" style={[styles.emptyPostsText, { color: colors.text.secondary }]}>
-                {profile.isMine 
-                  ? 'Você ainda não fez nenhum post'
-                  : `${profile.nome} ainda não fez nenhum post`
-                }
-              </Text>
-            </View>
+            <ProfilePostsGrid
+              userId={userId}
+              limit={9}
+              onPressSeeAll={handleSeeAllPosts}
+            />
           </Card.Content>
         </Card>
       </>
