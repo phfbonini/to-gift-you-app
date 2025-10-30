@@ -50,6 +50,12 @@ export interface UserProfile {
   topTags: string[];
 }
 
+// Thumbnails de posts para o grid do perfil
+export interface PostThumbnail {
+  id: number;
+  thumbnailUrl: string; // url da miniatura
+}
+
 export interface FollowActionResponse {
   isFollowing: boolean;
   followersCount: number;
@@ -176,6 +182,41 @@ export const getUserStats = async (userId: number): Promise<UserStats> => {
       
       if (apiError) {
         throw new Error(apiError.message || 'Erro no servidor');
+      }
+    }
+    throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
+  }
+};
+
+// Buscar thumbnails dos posts do usuário (limite padrão: 9)
+export const getUserPostThumbnails = async (
+  userId: number,
+  limit: number = 9
+): Promise<PostThumbnail[]> => {
+  try {
+    const response = await api.get<PostThumbnail[]>(`/api/users/${userId}/posts`, {
+      params: { limit },
+    });
+
+    // Ajustar possíveis URLs com localhost para baseURL correta no mobile
+    const baseURL = getBaseURL();
+    return (response.data || []).map((item) => {
+      let url = item.thumbnailUrl;
+      if (url && url.includes('localhost')) {
+        url = url.replace(/https?:\/\/localhost:\d+/, baseURL);
+      }
+      return { ...item, thumbnailUrl: url };
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiError>;
+      // Se o endpoint ainda não existe ou não foi implementado, retornar lista vazia para não quebrar a UI
+      if (axiosError.response?.status === 404 || axiosError.response?.status === 501) {
+        return [];
+      }
+      const apiError = axiosError.response?.data;
+      if (apiError && apiError.message) {
+        throw new Error(apiError.message);
       }
     }
     throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
@@ -407,4 +448,5 @@ export const profileService = {
   validateEmailChangeCode,
   confirmEmailChange,
   uploadPhoto,
+  getUserPostThumbnails,
 };
