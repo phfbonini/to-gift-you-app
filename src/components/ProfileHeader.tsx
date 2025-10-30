@@ -4,6 +4,7 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Image,
+  Animated,
 } from 'react-native';
 import { Text, Button, Card } from 'react-native-paper';
 import { UserProfile } from '../services/profileService';
@@ -24,6 +25,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onMessagePress,
   isLoading = false,
 }) => {
+  const [bioExpanded, setBioExpanded] = React.useState(false);
+  const followScale = React.useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    Animated.sequence([
+      Animated.timing(followScale, { toValue: 0.96, duration: 80, useNativeDriver: true }),
+      Animated.spring(followScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }),
+    ]).start();
+  }, [profile.isFollowing]);
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -108,7 +118,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     // Não é o próprio perfil - mostrar botões de seguir/mensagem
     return (
       <View style={styles.actionButtons}>
-        <Button
+        <Animated.View style={{ transform: [{ scale: followScale }], flex: 1 }}>
+          <Button
           mode={profile.isFollowing ? "outlined" : "contained"}
           onPress={onFollowPress}
           disabled={isLoading}
@@ -128,7 +139,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           icon={profile.isFollowing ? "check" : "account-plus"}
         >
           {profile.isFollowing ? 'Seguindo' : 'Seguir'}
-        </Button>
+          </Button>
+        </Animated.View>
         
         <Button
           mode="outlined"
@@ -160,9 +172,22 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </Text>
             
             {profile.bio && (
-              <Text variant="bodyMedium" style={[styles.bio, { color: colors.text.primary }]}>
-                {profile.bio}
-              </Text>
+              <>
+                <Text
+                  variant="bodyMedium"
+                  style={[styles.bio, { color: colors.text.primary }]}
+                  numberOfLines={bioExpanded ? undefined : 3}
+                >
+                  {profile.bio}
+                </Text>
+                {profile.bio.length > 120 && (
+                  <TouchableOpacity onPress={() => setBioExpanded(prev => !prev)}>
+                    <Text variant="bodySmall" style={[styles.seeMore, { color: colors.primary }]}>
+                      {bioExpanded ? 'ver menos' : 'ver mais'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
             )}
             
             <Text variant="bodySmall" style={[styles.joinedAt, { color: colors.text.secondary }]}>
@@ -236,6 +261,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 12,
+  },
+  seeMore: {
+    textAlign: 'center',
+    marginTop: -4,
+    marginBottom: 8,
+    fontWeight: '600',
   },
   joinedAt: {
     marginBottom: 12,
